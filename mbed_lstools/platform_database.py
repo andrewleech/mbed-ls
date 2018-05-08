@@ -287,6 +287,10 @@ DEFAULT_PLATFORM_DB = {
         u'RIOT': u'RIOT',
     },
     u'jlink': {
+        u'X729475D28G': {
+            u'platform_name': u'NRF51_DK',
+            u'jlink_device_name': u'nRF51422_xxac'
+        },
         u'X349858SLYN': {
             u'platform_name': u'NRF52_DK',
             u'jlink_device_name': u'nRF52832_xxaa'
@@ -410,6 +414,8 @@ class PlatformDatabase(object):
         is True, all data for the platform is returned as a dict."""
         for db in self._dbs.values():
             if device_type in db:
+                if device_type == 'daplink':
+                    index = index[0:4]
                 maybe_answer = db[device_type].get(index, None)
                 if maybe_answer:
                     return _modify_data_format(maybe_answer, verbose_data)

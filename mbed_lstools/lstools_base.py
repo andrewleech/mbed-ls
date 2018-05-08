@@ -140,7 +140,7 @@ class MbedLsToolsBase(object):
                         "Use the '-u' flag to include it in the list.",
                         device['target_id_usb_id'])
             else:
-                platform_data = self.plat_db.get(device['target_id_usb_id'][0:4], verbose_data=True)
+                platform_data = self.plat_db.get(device['target_id_usb_id'], verbose_data=True)
                 device.update(platform_data or {"platform_name": None})
                 maybe_device = {
                     FSInteraction.BeforeFilter: self._fs_before_id_check,
@@ -248,7 +248,7 @@ class MbedLsToolsBase(object):
                            for f, v in details_txt.items()})
 
         if device['target_id']:
-            platform_data = self.plat_db.get(device['target_id'][0:4],
+            platform_data = self.plat_db.get(device['target_id'],
                                              device_type='daplink',
                                              verbose_data=True)
             if platform_data:
@@ -263,8 +263,14 @@ class MbedLsToolsBase(object):
         """
         lower_case_map = {e.lower(): e for e in directory_entries}
 
-        if 'board.html' in lower_case_map:
+        device_type = 'jlink'
+
+        if 'mbed.htm' in lower_case_map:
+            board_file_key = 'mbed.htm'
+            device_type = 'daplink'  # If mbed.htm exists we can use main device db section
+        elif 'board.html' in lower_case_map:
             board_file_key = 'board.html'
+
         elif 'user guide.html' in lower_case_map:
             board_file_key = 'user guide.html'
         else:
@@ -279,11 +285,12 @@ class MbedLsToolsBase(object):
             m = re.search(r'url=([\w\d\:\-/\\\?\.=-_]+)', line)
             if m:
                 device['url'] = m.group(1).strip()
-                identifier = device['url'].split('/')[-1]
+                identifier = device['url'].split('/')[-1].split('=')[-1]
                 platform_data = self.plat_db.get(identifier,
-                                                 device_type='jlink',
+                                                 device_type=device_type,
                                                  verbose_data=True)
                 if platform_data:
+                    platform_data['target_id'] = identifier
                     device.update(platform_data)
                 break
 
